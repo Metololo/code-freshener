@@ -48,7 +48,18 @@ class CodeFreshener:
         print(f"🕵️ Auditing the codebase at {repo_url}...")
         
         # We tell Hermes to look in the local directory './target_repo'
-        prompt = f"/code-smell-spotter audit the repository at {repo_url}. only generate the report dont apply fix"
+        prompt = f"""
+        /code-smell-spotter audit the repository at {repo_url} using code-smell-spotter skill.
+        First use the command `npx repomix@latest` pack the repository into a single file.
+        which will create repomix-output.xml and use it for the analysis.
+        Dont use 'cat' on files, you only need to use the repomix-output.xml file. 
+        
+        Also use logs format for each step:
+        1. [STEP][CLONING] Cloning the repository at {repo_url}...
+        2. [STEP][PACKAGING]: Packaging the repository for analysis.
+        3. [STEP][ANALYZING]: Analysing the codebase for code smells.
+        4. [STEP][REPORTING]: Creating the report...
+        """
         output = self.run_hermes(prompt)
         
         if output:
