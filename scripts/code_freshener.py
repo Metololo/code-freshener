@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 
 
 class CodeFreshener:
@@ -32,14 +33,22 @@ class CodeFreshener:
             return
 
         self.verify_report_exist()
-
+        
     def audit_repository(self):
+        skills_file = os.path.join(os.getcwd(), "hermes_skill", "code-smell-spotter.md")
+
         prompt = (
             f"/code-smell-spotter audit the codebase in {self.abs_pack_path}. "
-            f"Save the final JSON report to {self.abs_report_path}."
+            f"Save the final JSON report to {self.abs_report_path}. "
             f"Once the report is written end the conversation"
         )
-        hermes_cmd = f"hermes chat -q '{prompt}' --toolsets skills,terminal,read_file"
+
+        hermes_cmd = (
+            f"hermes chat "
+            f"-q '{prompt}' "
+            f"--skills {skills_file} "
+            f"--toolsets skills,terminal,read_file"
+        )
 
         if not self.run_command(hermes_cmd, "analyzing"):
             return False
