@@ -1,123 +1,191 @@
-# Code Freshener
+# 🧼 Code Freshener
 
-An AI-powered code quality analyzer that analyze any github repository, audits its codebase for code smells and bad design practices, and produces a structured report with scores, severity ratings, and actionable refactoring suggestions.
+An AI-powered code quality analyzer that inspects any GitHub repository, detects code smells and bad design practices, and produces a structured, actionable report.
 
-## What It Does
+---
+
+## 🚀 What It Does
 
 Code Freshener takes a repository URL and runs it through a multi-step analysis pipeline:
 
-1. **Clone** - Pulls the target repository into a working directory
-2. **Package** - Bundles the codebase into a single XML file using [Repomix](https://github.com/yamadashy/repomix)
-3. **Analyze** - Invokes [Hermes](https://github.com/nickscamara/hermes) (a local AI coding agent) with the custom made `code-smell-spotter` skill to audit the code
-4. **Report** - Produces a structured JSON report with a global quality score, per-file scores, detected smell categories, and prioritized refactoring recommendations
+1. **Clone** – Pulls the target repository into a working directory
+2. **Package** – Bundles the codebase into a single XML file using Repomix
+3. **Analyze** – Uses Hermes (local AI agent) with a custom `code-smell-spotter` skill
+4. **Report** – Generates a structured JSON report with scores and recommendations
 
-The analysis is grounded in established software design principles:
+---
 
-- **Refactoring.Guru** (primary source) -- the five smell categories: Bloaters, OO-Abusers, Change Preventers, Dispensables, and Couplers
-- **SOLID** principles (Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion)
-- **YAGNI / KISS / DRY**
-- **Clean Code** values and pragmatism
 
-## Requirements
+## 📚 Analysis Principles
 
-- **Node.js >= 18** and **npm** (for the web UI)
-- **Python 3** (for standalone script usage)
-- **Hermes Agent** installed and configured -- the analysis pipeline calls `hermes chat` under the hood, which requires the `skills` and `terminal` toolsets.
+The analysis is grounded in well-known software engineering practices:
 
-### Installing the Code Smell Spotter Skill
+* **Refactoring Guru (primary reference)**
+  👉 https://refactoring.guru/
+  Covers the 5 smell categories:
 
-This project ships with a `code-smell-spotter` skill in the `hermes_assets/skills/code-smell-spotter/` folder. Hermes needs this skill installed to perform the analysis.
+  * Bloaters
+  * Object-Oriented Abusers
+  * Change Preventers
+  * Dispensables
+  * Couplers
 
-**Option 1 -- Install via Hermes CLI (recommended):**
+* **SOLID Principles**
 
-```bash
-hermes skills tap add /absolute/path/to/code-freshener/hermes_assets/skills
-hermes skills browse  # you should now see code-smell-spotter available
-hermes skills install code-smell-spotter
-```
+* **DRY (Don’t Repeat Yourself)**
 
-Or if the skill is already published to your local workspace, link it directly:
+* **KISS (Keep It Simple, Stupid)**
 
-```bash
-# Copy the skill folder into Hermes' skills directory
-cp -r hermes_assets/skills/code-smell-spotter/ ~/.hermes/skills/code-smell-spotter/
-```
+* **YAGNI (You Aren’t Gonna Need It)**
 
-**Option 2 -- Load inline (no install needed):**
+* **Clean Code philosophy**
 
-If you don't want to install the skill globally, the Python script can reference it directly. Just make sure the path passed to `hermes chat` via `--toolsets skills,terminal,read_file` includes the `skills` toolset enabled, and that the skill folder is discoverable by Hermes.
+---
 
-Verify the skill is active:
+## ⚠️ Disclaimer (Token Usage)
 
-```bash
-hermes skills list
-```
+> This project relies on an AI agent (Hermes) to analyze your codebase.
 
-You should see `code-smell-spotter` in the output.
+* Large repositories can result in **high token usage**, depending on the size and complexity of the code.
+* This may lead to **longer processing times** and **increased costs** if you're using a paid model.
 
-### Important: Hermes Write Access
+---
 
-Hermes must be configured so it can write files to disk. This means either:
+## ⚙️ Requirements
 
-- Running Hermes in **local mode** (default -- it has full filesystem access)
-- Running Hermes in a container with a **mounted volume** pointing to the working directory where the report will be written
+Make sure you have:
 
-The `code_freshener.py` script passes an absolute path to Hermes and expects it to write the final `code-smell-report.json` at that location. If Hermes cannot write to disk, the analysis will complete but no report will be produced.
+* 🟢 **Node.js >= 18**
+* 📦 **npm**
 
-## Installation
-
-### Web UI (Full App)
+### Run the Web App
 
 ```bash
-pnpm install
-pnpm run dev
+npm install
+npm run dev
 ```
 
-This starts the Next.js development server (default `http://localhost:3000`). 
+### For the Analysis Script
 
-### Standalone (Python Script Only)
+* 🐍 **Python 3**
+* 🤖 **Hermes Agent installed**
+* 🔐 Hermes must have **read/write access** to the `scripts/` folder
 
-If you don't need the UI and just want to run the analysis directly:
+---
+
+## 🧪 Running the Analyzer (Python)
+
+Navigate to the scripts folder and run:
 
 ```bash
 cd scripts
-python code_freshener.py <repo_url>
+python main.py <repo_url>
 ```
 
-The script reads a repository URL and orchestrates the full pipeline. It outputs JSON status lines to stdout so it can be consumed by the Next.js API or parsed by any consumer.
+### 🐞 Debug Mode (Verbose Logs)
 
-To use in your own script, pass a URL to the `analyze()` method. The report is written to the current working directory as `code-smell-report.json`.
+```bash
+python main.py <repo_url> --debug
+```
 
-## Output Report
+📄 The report will be generated as:
 
-The analysis produces a JSON report with the following structure:
+```
+scripts/code-smell-report.json
+```
 
-- **global_score** (0-100) -- line-weighted average of all file scores
-- **categories_found** -- which of the five smell categories were detected
-- **smells[]** -- global smell-centric view, each entry spanning one or more affected files
-- **files[]** -- per-file breakdown with individual scores and smell details, sorted worst-first
-- **top_recommendations** -- up to five prioritized actions sorted by impact
+---
 
-Scores range from 0 (Critical) to 100 (Excellent), with deductions applied per smell instance based on severity (CRITICAL: -15 to -20, HIGH: -8 to -12, MEDIUM: -4 to -7, LOW: -1 to -3).
+## 📊 Output Report Structure
 
-## Project Structure
+The analysis produces a detailed JSON report:
+
+```json
+{
+  "timestamp": "<ISO 8601 datetime>",
+  "codebase": {
+    "path": "<path analyzed>",
+    "total_files": 0,
+    "languages": ["<lang>"],
+    "total_lines": 0
+  },
+  "global_score": 0,
+  "categories_found": ["bloater", "oo-abuser", "change-preventer", "dispensable", "coupler"],
+  "summary": "High-level assessment",
+  "smells": [
+    {
+      "category": "bloater",
+      "type": "Long Method",
+      "severity": "HIGH",
+      "files_affected": ["file1.py"],
+      "description": "What and why",
+      "suggestion": "How to fix"
+    }
+  ],
+  "files": [
+    {
+      "path": "file.py",
+      "score": 75,
+      "language": "Python",
+      "lines": 120,
+      "smells": [
+        {
+          "category": "bloater",
+          "type": "Long Method",
+          "severity": "HIGH",
+          "location": "lines 10-80",
+          "description": "Issue explanation",
+          "suggestion": "Refactoring advice"
+        }
+      ]
+    }
+  ],
+  "top_recommendations": [
+    {
+      "priority": 1,
+      "action": "Break large functions into smaller ones",
+      "impact": "HIGH",
+      "smell_type": "Long Method",
+      "files_affected": ["file.py"]
+    }
+  ]
+}
+```
+
+---
+
+## 📁 Project Structure
 
 ```
 .
-├── app/                      # Next.js app (pages, API routes)
-├── components/               # React UI components
-├── lib/                      # Shared types and utilities
+├── app/                      # Next.js app (UI + API)
+├── components/               # React components
+├── lib/                      # Shared utilities/types
 ├── scripts/
-│   ├── code_freshener.py     # Core analysis orchestrator
-│   └── repomix-output.xml    # Packed codebase (generated at runtime)
-└── hermes_assets/
-    └── skills/
-        └── code-smell-spotter/
-            └── SKILL.md      # The AI analysis skill definition
+│   ├── main.py               # Core analysis script
+│   ├── code-smell-report.json# Generated report
+│   └── hermes_assets/
+│       └── skills/
+│           └── code-smell-spotter/  # Custom Hermes skill
 ```
 
-## How It Works
+---
 
-The web UI calls an API route (`/api/analyze`) which spawns the `code_freshener.py` script as a child process. The script streams JSON progress updates to stdout, which the API pipes through a `ReadableStream` to the frontend. The frontend parses each line and updates the progress display step by step.
+## 🎉 About the Project
 
-For demo purposes, a `/api/demo` endpoint is also available that runs the same pipeline without requiring a live Hermes connection.
+This project is a simple project i made for fun and to test hermes agent. It's far from a "production ready" tool so feel free to:
+
+* 🍴 Fork it
+* 🛠 Modify it
+* 🚀 Extend it
+* 🤓 Experiment with it
+
+If you have ideas, suggestions, or feedback — don’t hesitate to share!
+
+## 💡 Future Ideas
+
+* Integration in github CI (trigger in pull request for example)
+* Dockerize the tool
+* Provide a "Fix" functionality to fix the code smell, run tests and create a pull request. 
+
+---
