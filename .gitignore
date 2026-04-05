@@ -15,8 +15,7 @@ node_modules
 .next/
 .DS_Store
 
-scripts/*
-
-# python scripts
-!scripts/code_freshener.py
-!scripts/main.py
+__pycache__
+repomix-output.xml
+target_repo
+code-smell-report.json
